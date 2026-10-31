@@ -15,8 +15,11 @@ type initializeResponse struct {
 	Model    string `json:"model"`
 }
 
-func initializeHandler(*HandlerContext) echo.HandlerFunc {
+func initializeHandler(h *HandlerContext) echo.HandlerFunc {
 	return func(c *echo.Context) error {
+		if h.Config.DisableInitialize {
+			return NewAPIError(http.StatusServiceUnavailable, "local_initialize_disabled")
+		}
 		cmd := exec.Command("../sql/init.sh")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr

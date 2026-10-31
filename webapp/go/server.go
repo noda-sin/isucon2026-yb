@@ -1,6 +1,7 @@
 package isureal
 
 import (
+	"net/http"
 	"os"
 
 	"github.com/jmoiron/sqlx"
@@ -31,7 +32,11 @@ func NewServer(config *Config) *echo.Echo {
 	if err != nil {
 		panic("failed to open database: " + err.Error())
 	}
-	db.SetMaxOpenConns(30)
+	maxConns := config.DBMaxOpenConns
+	if maxConns <= 0 {
+		maxConns = 30
+	}
+	db.SetMaxOpenConns(maxConns)
 	err = db.Ping()
 	if err != nil {
 		panic("failed to ping database: " + err.Error())
@@ -43,6 +48,12 @@ func NewServer(config *Config) *echo.Echo {
 		IPBans: &IPBanList{},
 	}
 	e.Use(IPBanMiddleware(handlerContext))
+	e.GET("/healthz", func(c *echo.Context) error {
+		if err := db.PingContext(c.Request().Context()); err != nil {
+			return c.NoContent(http.StatusServiceUnavailable)
+		}
+		return c.NoContent(http.StatusOK)
+	})
 
 	e.POST("/api/initialize", initializeHandler(handlerContext))
 	e.POST("/api/auth/register", registerHandler(handlerContext))

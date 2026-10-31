@@ -1,0 +1,6 @@
+services:
+  db-init:
+    environment:
+      SEED_MODE: external
+    volumes:
+      - ${SEED_DIR:?Set SEED_DIR to a trusted data.sql directory}:/seed:ro

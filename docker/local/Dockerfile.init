@@ -1,0 +1,6 @@
+FROM yugabytedb/yugabyte:2025.2.8.0-b60
+COPY docker/local/init.sh /local/init.sh
+COPY docker/local/sql/ /local/sql/
+COPY webapp/sql/001-schema.sql webapp/sql/003-initial-snapshot.sql /initial-sql/
+RUN mkdir -p /seed
+ENTRYPOINT ["bash", "/local/init.sh"]

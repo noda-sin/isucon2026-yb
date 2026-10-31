@@ -1,0 +1,651 @@
+{
+  "name": "isureal-local",
+  "services": {
+    "master-asia": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-master",
+        "--master_addresses=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=master-asia:7100",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--replication_factor=3",
+        "--placement_cloud=local",
+        "--placement_region=asia",
+        "--placement_zone=asia",
+        "--memory_limit_hard_bytes=268435456",
+        "--num_cpus=2",
+        "--default_memory_limit_to_ram_ratio=0.1"
+      ],
+      "volumes": [
+        "master-asia:/var/lib/yugabyte"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -fsS http://master-asia:7000/api/v1/masters >/dev/null"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 30,
+        "start_period": "30s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "512m",
+      "ports": [
+        "127.0.0.1:17000:7000"
+      ]
+    },
+    "tserver-asia-1": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-tserver",
+        "--tserver_master_addrs=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=tserver-asia-1:9100",
+        "--pgsql_proxy_bind_address=0.0.0.0:5433",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--placement_cloud=local",
+        "--placement_region=asia",
+        "--placement_zone=asia",
+        "--start_cql_proxy=false",
+        "--enable_ysql=true",
+        "--memory_limit_hard_bytes=402653184",
+        "--num_cpus=2",
+        "--yb_enable_read_committed_isolation=true",
+        "--enable_wait_queues=true",
+        "--enable_object_locking_for_table_locks=true",
+        "--ysql_yb_ddl_transaction_block_enabled=true",
+        "--ysql_yb_enable_advisory_locks=true",
+        "--use_tablespace_based_transaction_placement=true",
+        "--ysql_num_shards_per_tserver=1",
+        "--yb_num_shards_per_tserver=1",
+        "--ysql_pg_conf_csv=max_connections=20,shared_buffers=32MB",
+        "--durable_wal_write=true"
+      ],
+      "volumes": [
+        "tserver-asia-1:/var/lib/yugabyte"
+      ],
+      "depends_on": {
+        "master-asia": {
+          "condition": "service_healthy"
+        },
+        "master-europe": {
+          "condition": "service_healthy"
+        },
+        "master-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "/home/yugabyte/bin/ysqlsh -h localhost -p 5433 -U yugabyte -d yugabyte -Atqc 'SELECT 1' | grep -qx 1"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 40,
+        "start_period": "60s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "800m",
+      "ports": [
+        "127.0.0.1:15433:5433"
+      ]
+    },
+    "tserver-asia-2": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-tserver",
+        "--tserver_master_addrs=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=tserver-asia-2:9100",
+        "--pgsql_proxy_bind_address=0.0.0.0:5433",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--placement_cloud=local",
+        "--placement_region=asia",
+        "--placement_zone=asia",
+        "--start_cql_proxy=false",
+        "--enable_ysql=true",
+        "--memory_limit_hard_bytes=402653184",
+        "--num_cpus=2",
+        "--yb_enable_read_committed_isolation=true",
+        "--enable_wait_queues=true",
+        "--enable_object_locking_for_table_locks=true",
+        "--ysql_yb_ddl_transaction_block_enabled=true",
+        "--ysql_yb_enable_advisory_locks=true",
+        "--use_tablespace_based_transaction_placement=true",
+        "--ysql_num_shards_per_tserver=1",
+        "--yb_num_shards_per_tserver=1",
+        "--ysql_pg_conf_csv=max_connections=20,shared_buffers=32MB",
+        "--durable_wal_write=true"
+      ],
+      "volumes": [
+        "tserver-asia-2:/var/lib/yugabyte"
+      ],
+      "depends_on": {
+        "master-asia": {
+          "condition": "service_healthy"
+        },
+        "master-europe": {
+          "condition": "service_healthy"
+        },
+        "master-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "/home/yugabyte/bin/ysqlsh -h localhost -p 5433 -U yugabyte -d yugabyte -Atqc 'SELECT 1' | grep -qx 1"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 40,
+        "start_period": "60s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "800m"
+    },
+    "master-europe": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-master",
+        "--master_addresses=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=master-europe:7100",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--replication_factor=3",
+        "--placement_cloud=local",
+        "--placement_region=europe",
+        "--placement_zone=europe",
+        "--memory_limit_hard_bytes=268435456",
+        "--num_cpus=2",
+        "--default_memory_limit_to_ram_ratio=0.1"
+      ],
+      "volumes": [
+        "master-europe:/var/lib/yugabyte"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -fsS http://master-europe:7000/api/v1/masters >/dev/null"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 30,
+        "start_period": "30s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "512m"
+    },
+    "tserver-europe-1": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-tserver",
+        "--tserver_master_addrs=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=tserver-europe-1:9100",
+        "--pgsql_proxy_bind_address=0.0.0.0:5433",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--placement_cloud=local",
+        "--placement_region=europe",
+        "--placement_zone=europe",
+        "--start_cql_proxy=false",
+        "--enable_ysql=true",
+        "--memory_limit_hard_bytes=402653184",
+        "--num_cpus=2",
+        "--yb_enable_read_committed_isolation=true",
+        "--enable_wait_queues=true",
+        "--enable_object_locking_for_table_locks=true",
+        "--ysql_yb_ddl_transaction_block_enabled=true",
+        "--ysql_yb_enable_advisory_locks=true",
+        "--use_tablespace_based_transaction_placement=true",
+        "--ysql_num_shards_per_tserver=1",
+        "--yb_num_shards_per_tserver=1",
+        "--ysql_pg_conf_csv=max_connections=20,shared_buffers=32MB",
+        "--durable_wal_write=true"
+      ],
+      "volumes": [
+        "tserver-europe-1:/var/lib/yugabyte"
+      ],
+      "depends_on": {
+        "master-asia": {
+          "condition": "service_healthy"
+        },
+        "master-europe": {
+          "condition": "service_healthy"
+        },
+        "master-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "/home/yugabyte/bin/ysqlsh -h localhost -p 5433 -U yugabyte -d yugabyte -Atqc 'SELECT 1' | grep -qx 1"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 40,
+        "start_period": "60s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "800m",
+      "ports": [
+        "127.0.0.1:15434:5433"
+      ]
+    },
+    "tserver-europe-2": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-tserver",
+        "--tserver_master_addrs=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=tserver-europe-2:9100",
+        "--pgsql_proxy_bind_address=0.0.0.0:5433",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--placement_cloud=local",
+        "--placement_region=europe",
+        "--placement_zone=europe",
+        "--start_cql_proxy=false",
+        "--enable_ysql=true",
+        "--memory_limit_hard_bytes=402653184",
+        "--num_cpus=2",
+        "--yb_enable_read_committed_isolation=true",
+        "--enable_wait_queues=true",
+        "--enable_object_locking_for_table_locks=true",
+        "--ysql_yb_ddl_transaction_block_enabled=true",
+        "--ysql_yb_enable_advisory_locks=true",
+        "--use_tablespace_based_transaction_placement=true",
+        "--ysql_num_shards_per_tserver=1",
+        "--yb_num_shards_per_tserver=1",
+        "--ysql_pg_conf_csv=max_connections=20,shared_buffers=32MB",
+        "--durable_wal_write=true"
+      ],
+      "volumes": [
+        "tserver-europe-2:/var/lib/yugabyte"
+      ],
+      "depends_on": {
+        "master-asia": {
+          "condition": "service_healthy"
+        },
+        "master-europe": {
+          "condition": "service_healthy"
+        },
+        "master-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "/home/yugabyte/bin/ysqlsh -h localhost -p 5433 -U yugabyte -d yugabyte -Atqc 'SELECT 1' | grep -qx 1"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 40,
+        "start_period": "60s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "800m"
+    },
+    "master-america": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-master",
+        "--master_addresses=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=master-america:7100",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--replication_factor=3",
+        "--placement_cloud=local",
+        "--placement_region=america",
+        "--placement_zone=america",
+        "--memory_limit_hard_bytes=268435456",
+        "--num_cpus=2",
+        "--default_memory_limit_to_ram_ratio=0.1"
+      ],
+      "volumes": [
+        "master-america:/var/lib/yugabyte"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -fsS http://master-america:7000/api/v1/masters >/dev/null"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 30,
+        "start_period": "30s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "512m"
+    },
+    "tserver-america-1": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-tserver",
+        "--tserver_master_addrs=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=tserver-america-1:9100",
+        "--pgsql_proxy_bind_address=0.0.0.0:5433",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--placement_cloud=local",
+        "--placement_region=america",
+        "--placement_zone=america",
+        "--start_cql_proxy=false",
+        "--enable_ysql=true",
+        "--memory_limit_hard_bytes=402653184",
+        "--num_cpus=2",
+        "--yb_enable_read_committed_isolation=true",
+        "--enable_wait_queues=true",
+        "--enable_object_locking_for_table_locks=true",
+        "--ysql_yb_ddl_transaction_block_enabled=true",
+        "--ysql_yb_enable_advisory_locks=true",
+        "--use_tablespace_based_transaction_placement=true",
+        "--ysql_num_shards_per_tserver=1",
+        "--yb_num_shards_per_tserver=1",
+        "--ysql_pg_conf_csv=max_connections=20,shared_buffers=32MB",
+        "--durable_wal_write=true"
+      ],
+      "volumes": [
+        "tserver-america-1:/var/lib/yugabyte"
+      ],
+      "depends_on": {
+        "master-asia": {
+          "condition": "service_healthy"
+        },
+        "master-europe": {
+          "condition": "service_healthy"
+        },
+        "master-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "/home/yugabyte/bin/ysqlsh -h localhost -p 5433 -U yugabyte -d yugabyte -Atqc 'SELECT 1' | grep -qx 1"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 40,
+        "start_period": "60s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "800m",
+      "ports": [
+        "127.0.0.1:15435:5433"
+      ]
+    },
+    "tserver-america-2": {
+      "image": "yugabytedb/yugabyte:2025.2.8.0-b60",
+      "command": [
+        "/home/yugabyte/bin/yb-tserver",
+        "--tserver_master_addrs=master-asia:7100,master-europe:7100,master-america:7100",
+        "--rpc_bind_addresses=tserver-america-2:9100",
+        "--pgsql_proxy_bind_address=0.0.0.0:5433",
+        "--fs_data_dirs=/var/lib/yugabyte",
+        "--placement_cloud=local",
+        "--placement_region=america",
+        "--placement_zone=america",
+        "--start_cql_proxy=false",
+        "--enable_ysql=true",
+        "--memory_limit_hard_bytes=402653184",
+        "--num_cpus=2",
+        "--yb_enable_read_committed_isolation=true",
+        "--enable_wait_queues=true",
+        "--enable_object_locking_for_table_locks=true",
+        "--ysql_yb_ddl_transaction_block_enabled=true",
+        "--ysql_yb_enable_advisory_locks=true",
+        "--use_tablespace_based_transaction_placement=true",
+        "--ysql_num_shards_per_tserver=1",
+        "--yb_num_shards_per_tserver=1",
+        "--ysql_pg_conf_csv=max_connections=20,shared_buffers=32MB",
+        "--durable_wal_write=true"
+      ],
+      "volumes": [
+        "tserver-america-2:/var/lib/yugabyte"
+      ],
+      "depends_on": {
+        "master-asia": {
+          "condition": "service_healthy"
+        },
+        "master-europe": {
+          "condition": "service_healthy"
+        },
+        "master-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "/home/yugabyte/bin/ysqlsh -h localhost -p 5433 -U yugabyte -d yugabyte -Atqc 'SELECT 1' | grep -qx 1"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 40,
+        "start_period": "60s"
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "800m"
+    },
+    "db-init": {
+      "entrypoint": [
+        "bash",
+        "/local/init.sh"
+      ],
+      "environment": {
+        "PGHOST": "tserver-asia-1",
+        "PGPORT": "5433",
+        "PGUSER": "yugabyte",
+        "PGDATABASE": "isureal",
+        "SEED_MODE": "${SEED_MODE:-smoke}",
+        "EXTERNAL_SEED": "/seed/data.sql"
+      },
+      "depends_on": {
+        "tserver-asia-1": {
+          "condition": "service_healthy"
+        },
+        "tserver-asia-2": {
+          "condition": "service_healthy"
+        },
+        "tserver-europe-1": {
+          "condition": "service_healthy"
+        },
+        "tserver-europe-2": {
+          "condition": "service_healthy"
+        },
+        "tserver-america-1": {
+          "condition": "service_healthy"
+        },
+        "tserver-america-2": {
+          "condition": "service_healthy"
+        }
+      },
+      "restart": "no",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.init"
+      }
+    },
+    "app-asia": {
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.app"
+      },
+      "environment": {
+        "ISUREAL_REGION": "asia",
+        "ISUREAL_DB_HOST": "tserver-asia-1",
+        "ISUREAL_DB_PORT": "5433",
+        "ISUREAL_DB_USER": "yugabyte",
+        "ISUREAL_DB_NAME": "isureal",
+        "ISUREAL_DB_SSLMODE": "disable",
+        "ISUREAL_DB_MAX_OPEN_CONNS": "4",
+        "ISUREAL_DISABLE_INITIALIZE": "true"
+      },
+      "depends_on": {
+        "db-init": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "256m",
+      "image": "isureal-local/app:dev"
+    },
+    "app-europe": {
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.app"
+      },
+      "environment": {
+        "ISUREAL_REGION": "europe",
+        "ISUREAL_DB_HOST": "tserver-europe-1",
+        "ISUREAL_DB_PORT": "5433",
+        "ISUREAL_DB_USER": "yugabyte",
+        "ISUREAL_DB_NAME": "isureal",
+        "ISUREAL_DB_SSLMODE": "disable",
+        "ISUREAL_DB_MAX_OPEN_CONNS": "4",
+        "ISUREAL_DISABLE_INITIALIZE": "true"
+      },
+      "depends_on": {
+        "db-init": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "256m",
+      "image": "isureal-local/app:dev"
+    },
+    "app-america": {
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.app"
+      },
+      "environment": {
+        "ISUREAL_REGION": "america",
+        "ISUREAL_DB_HOST": "tserver-america-1",
+        "ISUREAL_DB_PORT": "5433",
+        "ISUREAL_DB_USER": "yugabyte",
+        "ISUREAL_DB_NAME": "isureal",
+        "ISUREAL_DB_SSLMODE": "disable",
+        "ISUREAL_DB_MAX_OPEN_CONNS": "4",
+        "ISUREAL_DISABLE_INITIALIZE": "true"
+      },
+      "depends_on": {
+        "db-init": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "256m",
+      "image": "isureal-local/app:dev"
+    },
+    "web-asia": {
+      "environment": {
+        "APP_UPSTREAM": "app-asia:8080"
+      },
+      "ports": [
+        "127.0.0.1:18080:8080"
+      ],
+      "depends_on": {
+        "app-asia": {
+          "condition": "service_healthy"
+        }
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "64m",
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "retries": 10
+      },
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.web"
+      },
+      "image": "isureal-local/web:dev"
+    },
+    "web-europe": {
+      "environment": {
+        "APP_UPSTREAM": "app-europe:8080"
+      },
+      "ports": [
+        "127.0.0.1:18081:8080"
+      ],
+      "depends_on": {
+        "app-europe": {
+          "condition": "service_healthy"
+        }
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "64m",
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "retries": 10
+      },
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.web"
+      },
+      "image": "isureal-local/web:dev"
+    },
+    "web-america": {
+      "environment": {
+        "APP_UPSTREAM": "app-america:8080"
+      },
+      "ports": [
+        "127.0.0.1:18082:8080"
+      ],
+      "depends_on": {
+        "app-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "restart": "unless-stopped",
+      "mem_limit": "64m",
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "retries": 10
+      },
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.web"
+      },
+      "image": "isureal-local/web:dev"
+    },
+    "verify": {
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/tests/Dockerfile"
+      },
+      "profiles": [
+        "test"
+      ],
+      "depends_on": {
+        "db-init": {
+          "condition": "service_completed_successfully"
+        }
+      }
+    }
+  },
+  "volumes": {
+    "master-asia": {},
+    "tserver-asia-1": {},
+    "tserver-asia-2": {},
+    "master-europe": {},
+    "tserver-europe-1": {},
+    "tserver-europe-2": {},
+    "master-america": {},
+    "tserver-america-1": {},
+    "tserver-america-2": {}
+  }
+}

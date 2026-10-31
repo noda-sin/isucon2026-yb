@@ -1,0 +1,7 @@
+.git
+config
+**/AGENTS.md
+**/.env*
+**/*.dump*
+**/node_modules
+**/__pycache__
