@@ -1,6 +1,6 @@
-# Cross-region netem overlay — execution pending approval
+# Cross-region netem overlay
 
-**コードと静的検証のみ。コンテナ起動、NET_ADMIN付与、tc実行、実RTT測定は未実行です。**
+2026-10-31、ユーザーの明示承認後にDocker内15個の専用sidecarで起動・遅延実測・解除を検証しました。実測結果は下記に記載します。
 
 この構成を起動するには、対象コンテナのnetwork namespaceを共有するsidecarへの`NET_ADMIN`追加について、具体的なユーザー承認が必要です。`NETEM_APPROVED=yes`は承認取得後にだけ指定します。値を設定しても承認そのものにはなりません。
 
@@ -32,7 +32,7 @@ root `prio` qdiscのpriomapは全優先度を無遅延bandへ送り、別地域�
 
 ## 承認後の操作例
 
-以下は手順の説明であり、まだ実行されていません。repo rootから操作します。
+repo rootから操作します。初回は上記の権限・一時通信断を了承したうえで実行してください。
 
 ```sh
 # まず静的確認。capabilityもコンテナも作成しない。
@@ -64,7 +64,7 @@ Goだけなら`--java`を省略します。ただしJavaアプリがすでに稼
 
 ## TCP接続時間のON／OFF差分測定
 
-`tcp_probe.py`はsidecarから同じnamespaceを使い、各地域のTServer 1へTCP接続します。Master／TServer／Go／Javaの全対象namespaceで測定し、DNS名が想定地域CIDRへ解決されることも確認します。ICMP／raw socketは使いません。接続時間はTCP handshakeのRTTに近い指標であり、SQL処理時間／帯域／アプリ全体のlatencyを表しません。
+`tcp_probe.py`はsidecarから同じnamespaceを使い、3地域のMaster RPC (7100)、6台すべてのTServerのYSQL (5433)／RPC (9100)へTCP接続します（15 namespace × 15宛先 = 225経路）。Master／TServer／Go／Javaの全対象namespaceで測定し、DNS名が想定地域CIDRへ解決されることも確認します。ICMP／raw socketは使いません。接続時間はTCP handshakeのRTTに近い指標であり、SQL処理時間／帯域／アプリ全体のlatencyを表しません。
 
 ```sh
 # 一度onでsidecarを作成した後、qdiscだけ外してbaselineを測る。
@@ -79,13 +79,35 @@ python3 docker/local/netem/compare.py /tmp/netem-off.json /tmp/netem-on.json --r
 python3 docker/local/netem/control.py off --java
 ```
 
-期待値は同地域の増分約0ms、別地域の増分約100msです。比較toolはCPU負荷・タイマ粒度を考慮した広い許容幅を使います。実測未実行のため、動作済み／100msを再現済みとは扱いません。負荷時のtimeoutやTCP再送は別に調べる必要があります。
+期待値は同地域の増分約0ms、別地域の増分約100msです。比較toolはCPU負荷・タイマ粒度を考慮した広い許容幅を使います。SQLやアプリ処理時間をこの値と同一視しません。負荷時のtimeoutやTCP再送は別に調べる必要があります。
 
 ## 静的検証結果
 
 - Python構文、純粋command-plan test、Compose configを確認。
 - 15 sidecarすべて`NET_ADMIN`のみ、全endpointが単一専用network、同地域CIDRのfilterなし、片道RTT/2、ingressなしを検査。
 - Java-only profileではNET_ADMINを持つserviceが0、全公開ポートは127.0.0.1のまま。
-- `docker build/up/run/exec`、`ip/tc`、実ネットワーク変更はこの作成作業では未実行。
+- 起動・実測記録は以下。
 
 参考: [Compose service namespace/capabilities](https://docs.docker.com/reference/compose-file/services/)、[netem](https://man7.org/linux/man-pages/man8/tc-netem.8.html)、[tc](https://man7.org/linux/man-pages/man8/tc.8.html)。
+
+## 実測記録（2026-10-31）
+
+Apple Silicon / Docker Desktop29.9.2 / Compose5.6.1、YB2025.2.8.0-b60。ローカル合成データのみ。ユーザーが15個のDocker内NET_ADMIN sidecarと一時通信断を明示承認した後に実行しました。
+
+- 実container inspectでも15 sidecarがNET_ADMINのみ・privilegedなし・対象container namespace共有を確認。DB/app/webは単一netem-lab bridgeだけに接続。
+- 各経路5回のTCP接続時間の中央値を比較。225経路すべて許容範囲内。
+
+| 分類 | 経路数 | 100ms設定時の接続中央値の範囲 | baselineからの増分範囲 |
+|---|---:|---:|---:|
+| 同地域 | 75 | 0.021–0.128ms | −0.293–＋0.098ms |
+| 地域間 | 150 | 100.172–100.485ms | ＋99.986–＋100.402ms |
+
+遅延なし225経路の中央値範囲は0.020–0.347ms。地域間の増分中央値は100.208ms。Master7100、TServer9100、YSQL5433を全地域・全DBノードで測定しました。TCP接続時間の検証であり、帯域や本番ワークロードの性能保証ではありません。
+
+初回network変更と再適用でアプリ再作成・一時通信断が発生し、遅延下の起動時には一部healthcheckが一時timeoutしました。最終的に正常化し、6 TServerのrestart countは0、OOM=falseでした。
+
+100ms遅延下で `python3 docker/local/netem/smoke-api.py` を実行し、各地域の登録→login→取得→次地域へ移動→移動先で取得→logout、全18操作に成功。応答時間は0.817–39.908秒でした。global registryと複数SQL往復・起動直後の状態を含むため、TCP RTTの100msとは別の値です。性能最適化や公式benchmark結果ではありません。toolは合成アカウントを残しますが、secret/tokenを表示しません。
+
+OFF後は全225経路で接続中央値0.020–1.513msへ戻り、baselineとの差は−0.311–＋1.475msでした。15 namespaceすべての専用qdisc/filter消去をstatusで確認後、15 sidecarを通常停止しました。専用bridgeは維持し、DB・Go/Javaアプリ・Webの通常21コンテナは稼働を継続します。
+
+測定JSONはローカル一時ファイル `/tmp/netem-off.json`、`/tmp/netem-on.json`、`/tmp/netem-recovered.json`。復元照合結果は `/tmp/isureal-geo-restore-comparison.log`。これらは開発Macの一時検証記録であり配布データではありません。上記コマンドで再現できます。

@@ -26,7 +26,7 @@ def main():
         change = row["median_ms"] - baseline[pair]["median_ms"]
         remote = row["source_region"] != row["target_region"]
         ok = (0.6 * args.rtt_ms <= change <= 1.5 * args.rtt_ms + 20) if remote else abs(change) <= max(20, 0.2 * args.rtt_ms)
-        print(("PASS" if ok else "FAIL"), pair[0], "->", pair[1], f"added median {change:.2f} ms", "cross-region" if remote else "same-region")
+        print(("PASS" if ok else "FAIL"), pair[0], "->", pair[1] + ":" + str(pair[2]), f"added median {change:.2f} ms", "cross-region" if remote else "same-region")
         failures += not ok
     if failures:
         raise SystemExit(f"FAIL: {failures} paths outside broad timing tolerance; inspect CPU load, filters, packet drops and endpoint recreation")

@@ -75,7 +75,21 @@ GEO_SEED_FILE=/absolute/path/parent-inserts.sql docker compose \
 
 `export.py` はpublic viewsを単一のread-only REPEATABLE READ snapshotで読み、FK順の親名INSERTを出力する専用ツールです。内部registryを二重投入せず、画像bytea・NULL・timestampもSQL literal化します。既存出力ファイルを上書きしません。
 
-**export/restoreの実動作は未検証です。** ツールは実装済みですが、この環境でのexportと復元の往復試験は完了していません。公式データやJava geo DBのbackup/restore成功として扱わないでください。
+2026-10-31、ユーザー承認のもとローカル合成データだけをexportし、別DBへの復元を確認しました。15 entity・206行の全列（画像bytea・NULL・timestampを含む）と地域別件数が一致しました。公式seedの復元検証ではありません。
+
+再現時は書き込み元アプリを停止してから比較します。以下のDB名・ファイルは未使用のものを指定してください。既存DBを上書きしません。
+
+```sh
+docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml --profile java stop app-java-asia app-java-europe app-java-america
+python3 docker/local/geo/export.py --output /tmp/geo-synthetic.sql
+docker compose exec -T tserver-asia-1 /home/yugabyte/bin/ysqlsh -X -h localhost -p 5433 -U yugabyte -d yugabyte -v ON_ERROR_STOP=1 -c "CREATE DATABASE isureal_geo_restore_test"
+docker compose exec -T tserver-asia-1 /home/yugabyte/bin/ysqlsh -X -h localhost -p 5433 -U yugabyte -d isureal_geo_restore_test -v ON_ERROR_STOP=1 < docker/local/geo/schema.sql
+docker compose exec -T tserver-asia-1 /home/yugabyte/bin/ysqlsh -X -1 -h localhost -p 5433 -U isureal_java_app -d isureal_geo_restore_test -v ON_ERROR_STOP=1 < /tmp/geo-synthetic.sql
+python3 docker/local/geo/compare-restore.py isureal_java isureal_geo_restore_test
+docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml --profile java start app-java-asia app-java-europe app-java-america
+```
+
+照合toolは両DBをread-only snapshotで読み、行を主キー順に比較します。全列の等価性とentity別SHA256、地域別件数を確認し、行データは表示しません。照合後に不要な一時DBとexportファイルを削除してください。
 
 ## 検証記録
 
@@ -85,6 +99,7 @@ GEO_SEED_FILE=/absolute/path/parent-inserts.sql docker compose \
 - `verify-concurrency.py`: RC statement snapshot、地域間table lock、移動vs子INSERT、同時username衝突、並行更新lost-update防止: 5/5 PASS。
 - `verify-placement.sh`: 45実体table + 57副次index、全102 tabletについて実Raft replicaがlocal2＋remote1、leaderがlocal地域: PASS。
 - Bash/Python構文、生成再現性、Compose結合config、diff whitespace: PASS。
-- 外部公式seed、geo logical export/restore: 未実行。
+- geo logical export/restore: 別DBへ限定roleで単一transaction復元、15 entity / 206行・地域件数一致: PASS。一時復元DBは照合後に削除。
+- 外部公式seed: 未入手・未実行。
 
 資料: [YugabyteDB triggers](https://docs.yugabyte.com/stable/explore/ysql-language-features/advanced-features/triggers/)、[PostgreSQL CREATE VIEW](https://www.postgresql.org/docs/current/sql-createview.html)、[YugabyteDB geo-local tables](https://docs.yugabyte.com/stable/develop/build-global-apps/real-world-scenarios/globally-local/)。文書だけで互換を判定せず、固定イメージの実行結果を優先しています。

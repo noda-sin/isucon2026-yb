@@ -72,11 +72,11 @@ docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml --profil
 
 Javaは親table名に正規化したdata-only **INSERT形式**を新規DBへ投入します。viewへのCOPYや、元の画像月別partition名へのINSERTは使えません。入口・制限は [geo seed手順](docker/local/geo/README.md)。Goのdata-only SQL入口は `SEED_DIR=/absolute/seed-dir docker compose -f compose.yaml -f compose.seed.yaml up -d --build`（新規DBのみ）です。
 
-Java geo専用exportツールは用意していますが、実行検証が未完了のため、**geo backup/restoreは未検証**です。公式seedの互換性も入手後に確認してください。取得を中止したpartial dumpは使用しません。[Go版の合成data-only backup／別DB復元](docker/local/BACKUP-GO.md)は51tableの件数・内容hash一致まで確認しています。
+Java geo専用exportから別DBへの復元をローカル合成データで検証し、15 entity・206行の全列と地域別件数が一致しました。公式seedの互換性も入手後に確認してください。取得を中止したpartial dumpは使用しません。[Go版の合成data-only backup／別DB復元](docker/local/BACKUP-GO.md)は51tableの件数・内容hash一致まで確認しています。
 
 ## 遅延シミュレーション
 
-通常構成は遅延を注入しません。netem overrideの実装と必要権限は [netem手順](docker/local/netem/README.md)。既定RTT100ms（片道50ms）はシミュレーション仮定で、実測した本番値ではありません。NET_ADMIN付きsidecarとDocker内network再作成は明示承認後にのみ実行します。
+通常構成は遅延を注入しません。netem overrideの実装と必要権限は [netem手順](docker/local/netem/README.md)。既定RTT100ms（片道50ms）はシミュレーション仮定で、実測した本番値ではありません。NET_ADMIN付きsidecarとDocker内network再作成は明示承認後にのみ実行します。ローカル検証ではSQL/RPC全225経路を測定し、地域間だけ約100ms増加、OFF後の復帰も確認しています。
 
 ## 原本
 

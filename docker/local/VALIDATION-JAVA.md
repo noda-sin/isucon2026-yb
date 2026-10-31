@@ -38,6 +38,7 @@ Apple Silicon / Docker Desktop29.9.2 / Compose5.6.1、VM8CPU/7.75GiB。公式YB2
 - Go初期原本を保持し、Javaは独立DB/role/profile。元の本番環境には接続していません。
 - 公式seed、公式ベンチマーク、任意入力の完全byte互換は未検証。JSON APIの契約を対象とし、EchoのXML/form binder fallbackは含めません。詳細はJava README。
 - view競合の40001/40P01は確認済みrollback後に最大4attemptでtransaction全体を再試行。接続断など結果不明のcommitを自動再実行しません。
-- Java geo logical export/restoreは未検証。初期化時の限定roleによる合成seed INSERTは検証済みです。
-- netemは設定・ON/OFF・測定コードと静的検証のみ。NET_ADMIN付与、tc設定、遅延実測は承認前のため未実行。
+- Java geo logical export/restoreはローカル合成データでPASS。15 entity・206行の全列と地域別件数が別DB復元後に一致。公式seedは対象外。
+- netemは明示承認後、Docker内15 sidecarで実測。225経路 × 5回、地域間150経路の増分99.986–100.402ms、同地域75経路は−0.293–＋0.098ms。SQL/Master RPC/TServer RPCを含む。[詳細](netem/README.md)。
+- netem下の3地域API登録/login/地域移動/logout等18操作PASS。OFF後225経路0.020–1.513ms、15 qdisc解除・sidecar停止を確認。
 - 一台のMacであり実際の地域障害耐性はありません。global制約registryへのcross-region処理も残ります。

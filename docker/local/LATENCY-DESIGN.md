@@ -1,9 +1,11 @@
-# Regional latency design — not activated
+# Regional latency design
 
-Current Compose uses one Docker bridge with no delay injection. It reproduces placement and locality, not WAN timing.
+The normal Compose configuration uses a Docker bridge without WAN delay. The optional [netem overlay](netem/README.md) assigns fixed addresses in three regional /24 ranges on one dedicated bridge, and places one shaping sidecar in each DB/app endpoint's network namespace.
 
-A routed variant can use three non-overlapping regional networks with dedicated routers. Apply Linux tc netem only on cross-region egress, covering YSQL, Master RPC, TServer RPC and replication. Keep same-region paths unchanged. For target RTT100ms, add forward50ms + reverse50ms exactly once per leg; applying at both endpoints and routers doubles the delay.
+The sidecars classify all cross-region IPv4 egress by destination CIDR. YSQL, Master RPC, TServer RPC and replication therefore use the same filters, including addresses discovered by the smart JDBC driver. There is no secondary endpoint network. Same-region traffic and management addresses are unshaped. Unlike a router design, this does not require endpoint route changes or forwarding containers.
 
-A router container alone is insufficient: endpoints normally use Docker's gateway. Routes must explicitly traverse the router, including discovered/advertised addresses from yb_servers and peer RPC. No flat bridge or secondary-interface bypass may remain. Avoid host networking or changes to macOS routes. Namespace-level NET_ADMIN, forwarding and tc are additional privileges and have not been activated or granted here.
+Each sidecar has only NET_ADMIN after dropping all capabilities. It has no Docker socket, privileged mode or host networking. The code checks its expected interface/address and owns a dedicated qdisc handle. The capability itself can change other settings in the shared container namespace, so explicit permission is required before activation. The 2026-10-31 local test was explicitly approved for all 15 namespaces and temporary Docker communication interruption.
 
-Verification: record baseline and shaped ICMP/TCP RTT for every region pair; check same-region RTT stays unchanged; inspect route/discovery addresses and qdisc counters for YSQL5433, Master7100 and TServer9100; ensure one shaper per direction; rerun transaction/API tests; remove profile and confirm baseline returns. No measured production latency/bandwidth matrix is available, so delay, jitter, loss and rate parameters must be labeled simulation inputs rather than production facts. Leave bandwidth/loss unset until explicitly specified.
+RTT100ms means forward50ms + reverse50ms, each applied once on egress. This is a simulation input, not a measured competition network value. Bandwidth, loss and jitter remain unset. One Mac does not reproduce independent regional failure domains.
+
+The probe compares unshaped, shaped and recovered TCP connection times from every shaped namespace to all three Master RPC endpoints and all six TServers' YSQL/RPC endpoints. It checks discovered addresses and same-region timing as well. SQL transactions and API response times include additional work and must not be equated with handshake RTT. See the linked runbook for measured results, ON/OFF and exceptional cleanup.
