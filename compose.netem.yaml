@@ -1,0 +1,985 @@
+{
+  "services": {
+    "master-asia": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.1.10"
+        }
+      }
+    },
+    "netem-master-asia": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:master-asia",
+      "depends_on": {
+        "master-asia": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "asia",
+        "NETEM_SOURCE_IP": "172.29.1.10",
+        "NETEM_TARGET_SERVICE": "master-asia",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "tserver-asia-1": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.1.11"
+        }
+      }
+    },
+    "netem-tserver-asia-1": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:tserver-asia-1",
+      "depends_on": {
+        "tserver-asia-1": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "asia",
+        "NETEM_SOURCE_IP": "172.29.1.11",
+        "NETEM_TARGET_SERVICE": "tserver-asia-1",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "tserver-asia-2": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.1.12"
+        }
+      }
+    },
+    "netem-tserver-asia-2": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:tserver-asia-2",
+      "depends_on": {
+        "tserver-asia-2": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "asia",
+        "NETEM_SOURCE_IP": "172.29.1.12",
+        "NETEM_TARGET_SERVICE": "tserver-asia-2",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "app-asia": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.1.20"
+        }
+      }
+    },
+    "netem-app-asia": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:app-asia",
+      "depends_on": {
+        "app-asia": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "asia",
+        "NETEM_SOURCE_IP": "172.29.1.20",
+        "NETEM_TARGET_SERVICE": "app-asia",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "app-java-asia": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.1.21"
+        }
+      },
+      "profiles": [
+        "java"
+      ]
+    },
+    "netem-app-java-asia": {
+      "profiles": [
+        "netem-java"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:app-java-asia",
+      "depends_on": {
+        "app-java-asia": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "asia",
+        "NETEM_SOURCE_IP": "172.29.1.21",
+        "NETEM_TARGET_SERVICE": "app-java-asia",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "web-asia": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.1.30"
+        }
+      }
+    },
+    "web-java-asia": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.1.31"
+        }
+      },
+      "profiles": [
+        "java"
+      ]
+    },
+    "master-europe": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.2.10"
+        }
+      }
+    },
+    "netem-master-europe": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:master-europe",
+      "depends_on": {
+        "master-europe": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "europe",
+        "NETEM_SOURCE_IP": "172.29.2.10",
+        "NETEM_TARGET_SERVICE": "master-europe",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "tserver-europe-1": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.2.11"
+        }
+      }
+    },
+    "netem-tserver-europe-1": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:tserver-europe-1",
+      "depends_on": {
+        "tserver-europe-1": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "europe",
+        "NETEM_SOURCE_IP": "172.29.2.11",
+        "NETEM_TARGET_SERVICE": "tserver-europe-1",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "tserver-europe-2": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.2.12"
+        }
+      }
+    },
+    "netem-tserver-europe-2": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:tserver-europe-2",
+      "depends_on": {
+        "tserver-europe-2": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "europe",
+        "NETEM_SOURCE_IP": "172.29.2.12",
+        "NETEM_TARGET_SERVICE": "tserver-europe-2",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "app-europe": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.2.20"
+        }
+      }
+    },
+    "netem-app-europe": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:app-europe",
+      "depends_on": {
+        "app-europe": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "europe",
+        "NETEM_SOURCE_IP": "172.29.2.20",
+        "NETEM_TARGET_SERVICE": "app-europe",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "app-java-europe": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.2.21"
+        }
+      },
+      "profiles": [
+        "java"
+      ]
+    },
+    "netem-app-java-europe": {
+      "profiles": [
+        "netem-java"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:app-java-europe",
+      "depends_on": {
+        "app-java-europe": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "europe",
+        "NETEM_SOURCE_IP": "172.29.2.21",
+        "NETEM_TARGET_SERVICE": "app-java-europe",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "web-europe": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.2.30"
+        }
+      }
+    },
+    "web-java-europe": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.2.31"
+        }
+      },
+      "profiles": [
+        "java"
+      ]
+    },
+    "master-america": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.3.10"
+        }
+      }
+    },
+    "netem-master-america": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:master-america",
+      "depends_on": {
+        "master-america": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "america",
+        "NETEM_SOURCE_IP": "172.29.3.10",
+        "NETEM_TARGET_SERVICE": "master-america",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "tserver-america-1": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.3.11"
+        }
+      }
+    },
+    "netem-tserver-america-1": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:tserver-america-1",
+      "depends_on": {
+        "tserver-america-1": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "america",
+        "NETEM_SOURCE_IP": "172.29.3.11",
+        "NETEM_TARGET_SERVICE": "tserver-america-1",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "tserver-america-2": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.3.12"
+        }
+      }
+    },
+    "netem-tserver-america-2": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:tserver-america-2",
+      "depends_on": {
+        "tserver-america-2": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "america",
+        "NETEM_SOURCE_IP": "172.29.3.12",
+        "NETEM_TARGET_SERVICE": "tserver-america-2",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "app-america": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.3.20"
+        }
+      }
+    },
+    "netem-app-america": {
+      "profiles": [
+        "netem"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:app-america",
+      "depends_on": {
+        "app-america": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "america",
+        "NETEM_SOURCE_IP": "172.29.3.20",
+        "NETEM_TARGET_SERVICE": "app-america",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "app-java-america": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.3.21"
+        }
+      },
+      "profiles": [
+        "java"
+      ]
+    },
+    "netem-app-java-america": {
+      "profiles": [
+        "netem-java"
+      ],
+      "image": "isureal-local-netem:dev",
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/netem/Dockerfile"
+      },
+      "network_mode": "service:app-java-america",
+      "depends_on": {
+        "app-java-america": {
+          "condition": "service_started",
+          "restart": true
+        }
+      },
+      "cap_drop": [
+        "ALL"
+      ],
+      "cap_add": [
+        "NET_ADMIN"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "read_only": true,
+      "tmpfs": [
+        "/run:rw,noexec,nosuid,size=8m"
+      ],
+      "environment": {
+        "NETEM_REGION": "america",
+        "NETEM_SOURCE_IP": "172.29.3.21",
+        "NETEM_TARGET_SERVICE": "app-java-america",
+        "NETEM_RTT_MS": "${NETEM_RTT_MS:-100}",
+        "NETEM_APPROVED": "${NETEM_APPROVED:-no}"
+      },
+      "restart": "no",
+      "stop_grace_period": "90s",
+      "mem_limit": "64m",
+      "pids_limit": 32,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python3",
+          "/opt/netem/controller.py",
+          "status"
+        ],
+        "interval": "15s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "web-america": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.3.30"
+        }
+      }
+    },
+    "web-java-america": {
+      "networks": {
+        "netem-lab": {
+          "ipv4_address": "172.29.3.31"
+        }
+      },
+      "profiles": [
+        "java"
+      ]
+    },
+    "db-init": {
+      "networks": {
+        "netem-lab": {}
+      }
+    },
+    "geo-init": {
+      "networks": {
+        "netem-lab": {}
+      },
+      "profiles": [
+        "java"
+      ]
+    },
+    "verify": {
+      "networks": {
+        "netem-lab": {}
+      },
+      "profiles": [
+        "test"
+      ]
+    }
+  },
+  "networks": {
+    "netem-lab": {
+      "driver": "bridge",
+      "enable_ipv6": false,
+      "ipam": {
+        "config": [
+          {
+            "subnet": "172.29.0.0/16",
+            "ip_range": "172.29.0.0/24",
+            "gateway": "172.29.0.1"
+          }
+        ]
+      }
+    }
+  }
+}
