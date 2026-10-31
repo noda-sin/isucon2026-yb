@@ -1,0 +1,27 @@
+services:
+  geo-init:
+    build:
+      context: .
+      dockerfile: docker/local/geo/Dockerfile
+    profiles: [java]
+    environment:
+      PGHOST: tserver-asia-1
+      PGPORT: "5433"
+      JAVA_SEED_MODE: ${JAVA_SEED_MODE:-smoke}
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      tserver-asia-1:
+        condition: service_healthy
+      tserver-asia-2:
+        condition: service_healthy
+      tserver-europe-1:
+        condition: service_healthy
+      tserver-europe-2:
+        condition: service_healthy
+      tserver-america-1:
+        condition: service_healthy
+      tserver-america-2:
+        condition: service_healthy
+    restart: "no"
+    mem_limit: 256m

@@ -1,0 +1,802 @@
+{
+  "image_objects": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "owner_user_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "data": {
+        "type": "bytea",
+        "notnull": true
+      },
+      "media_type": {
+        "type": "text",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id",
+      "created_at"
+    ],
+    "uniques": [],
+    "refs": {
+      "owner_user_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": "owner_user_id",
+    "registry": [
+      "id",
+      "owner_user_id",
+      "created_at"
+    ]
+  },
+  "users": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "username": {
+        "type": "varchar(64)",
+        "notnull": true
+      },
+      "secret_key_hash": {
+        "type": "text",
+        "notnull": true
+      },
+      "display_name": {
+        "type": "text",
+        "notnull": true
+      },
+      "bio": {
+        "type": "text",
+        "notnull": true
+      },
+      "profile_image_id": {
+        "type": "varchar(36)",
+        "notnull": false
+      },
+      "region": {
+        "type": "text",
+        "notnull": true
+      },
+      "account_type": {
+        "type": "text",
+        "notnull": true
+      },
+      "status": {
+        "type": "text",
+        "notnull": true
+      },
+      "deleted_at": {
+        "type": "timestamptz",
+        "notnull": false
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "updated_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [
+      [
+        "username"
+      ]
+    ],
+    "refs": {},
+    "defaults": {
+      "bio": "''",
+      "account_type": "'regular'",
+      "status": "'active'",
+      "created_at": "clock_timestamp()",
+      "updated_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": null,
+    "registry": [
+      "id",
+      "username"
+    ]
+  },
+  "administrators": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "username": {
+        "type": "varchar(64)",
+        "notnull": true
+      },
+      "password_hash": {
+        "type": "text",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [],
+    "refs": {},
+    "defaults": {
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": null,
+    "registry": [
+      "id"
+    ]
+  },
+  "login_sessions": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "user_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "token_hash": {
+        "type": "text",
+        "notnull": true
+      },
+      "active": {
+        "type": "boolean",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "invalidated_at": {
+        "type": "timestamptz",
+        "notnull": false
+      },
+      "reason": {
+        "type": "text",
+        "notnull": false
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [],
+    "refs": {
+      "user_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {
+      "active": "true",
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": "user_id",
+    "registry": [
+      "id",
+      "user_id"
+    ]
+  },
+  "administrator_sessions": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "administrator_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "token_hash": {
+        "type": "text",
+        "notnull": true
+      },
+      "active": {
+        "type": "boolean",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "invalidated_at": {
+        "type": "timestamptz",
+        "notnull": false
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [],
+    "refs": {
+      "administrator_id": [
+        "administrators",
+        "id"
+      ]
+    },
+    "defaults": {
+      "active": "true",
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": "administrator_id",
+    "registry": [
+      "id",
+      "administrator_id"
+    ]
+  },
+  "friendships": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "user_low_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "user_high_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "source_request_id": {
+        "type": "varchar(36)",
+        "notnull": false
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "updated_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [
+      [
+        "user_low_id",
+        "user_high_id"
+      ]
+    ],
+    "refs": {
+      "user_low_id": [
+        "users",
+        "id"
+      ],
+      "user_high_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {
+      "created_at": "clock_timestamp()",
+      "updated_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": "user_low_id",
+    "registry": [
+      "id",
+      "user_low_id",
+      "user_high_id"
+    ]
+  },
+  "follows": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "follower_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "followee_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "updated_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [
+      [
+        "follower_id",
+        "followee_id"
+      ]
+    ],
+    "refs": {
+      "follower_id": [
+        "users",
+        "id"
+      ],
+      "followee_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {
+      "created_at": "clock_timestamp()",
+      "updated_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": "follower_id",
+    "registry": [
+      "id",
+      "follower_id",
+      "followee_id"
+    ]
+  },
+  "block_relations": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "blocker_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "blocked_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [
+      [
+        "blocker_id",
+        "blocked_id"
+      ]
+    ],
+    "refs": {
+      "blocker_id": [
+        "users",
+        "id"
+      ],
+      "blocked_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": "blocker_id",
+    "registry": [
+      "id",
+      "blocker_id",
+      "blocked_id"
+    ]
+  },
+  "posting_windows": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "region": {
+        "type": "text",
+        "notnull": true
+      },
+      "local_date": {
+        "type": "date",
+        "notnull": true
+      },
+      "starts_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "on_time_deadline": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "ended_at": {
+        "type": "timestamptz",
+        "notnull": false
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [
+      [
+        "region",
+        "local_date"
+      ]
+    ],
+    "refs": {},
+    "defaults": {
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [
+      [
+        "posting_windows_one_active_region",
+        [
+          "region"
+        ],
+        "ended_at IS NULL"
+      ]
+    ],
+    "owner": null,
+    "registry": [
+      "id",
+      "region",
+      "local_date",
+      "ended_at"
+    ]
+  },
+  "posts": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "author_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "posting_window_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "image_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "caption": {
+        "type": "text",
+        "notnull": true
+      },
+      "visibility": {
+        "type": "text",
+        "notnull": true
+      },
+      "location_kind": {
+        "type": "text",
+        "notnull": true
+      },
+      "latitude": {
+        "type": "numeric",
+        "notnull": false
+      },
+      "longitude": {
+        "type": "numeric",
+        "notnull": false
+      },
+      "locality": {
+        "type": "text",
+        "notnull": false
+      },
+      "posted_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "deleted_at": {
+        "type": "timestamptz",
+        "notnull": false
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [],
+    "refs": {
+      "author_id": [
+        "users",
+        "id"
+      ],
+      "posting_window_id": [
+        "posting_windows",
+        "id"
+      ]
+    },
+    "defaults": {
+      "caption": "''",
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": "author_id",
+    "registry": [
+      "id",
+      "author_id",
+      "posting_window_id"
+    ]
+  },
+  "friend_requests": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "requester_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "recipient_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "status": {
+        "type": "text",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "updated_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [],
+    "refs": {
+      "requester_id": [
+        "users",
+        "id"
+      ],
+      "recipient_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {},
+    "partial": [],
+    "owner": "requester_id",
+    "registry": [
+      "id",
+      "requester_id",
+      "recipient_id"
+    ]
+  },
+  "realmojis": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "post_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "reactor_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "image_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "reaction_type": {
+        "type": "text",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "replaced_at": {
+        "type": "timestamptz",
+        "notnull": false
+      },
+      "deleted_at": {
+        "type": "timestamptz",
+        "notnull": false
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [],
+    "refs": {
+      "post_id": [
+        "posts",
+        "id"
+      ],
+      "reactor_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {},
+    "partial": [
+      [
+        "realmojis_one_active",
+        [
+          "post_id",
+          "reactor_id"
+        ],
+        "replaced_at IS NULL AND deleted_at IS NULL"
+      ]
+    ],
+    "owner": "reactor_id",
+    "registry": [
+      "id",
+      "post_id",
+      "reactor_id",
+      "replaced_at",
+      "deleted_at"
+    ]
+  },
+  "comments": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "post_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "author_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "body": {
+        "type": "text",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "deleted_at": {
+        "type": "timestamptz",
+        "notnull": false
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [],
+    "refs": {
+      "post_id": [
+        "posts",
+        "id"
+      ],
+      "author_id": [
+        "users",
+        "id"
+      ]
+    },
+    "defaults": {},
+    "partial": [],
+    "owner": "author_id",
+    "registry": [
+      "id",
+      "post_id",
+      "author_id"
+    ]
+  },
+  "notifications": {
+    "fields": {
+      "id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "user_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "posting_window_id": {
+        "type": "varchar(36)",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "id"
+    ],
+    "uniques": [
+      [
+        "user_id",
+        "posting_window_id"
+      ]
+    ],
+    "refs": {
+      "user_id": [
+        "users",
+        "id"
+      ],
+      "posting_window_id": [
+        "posting_windows",
+        "id"
+      ]
+    },
+    "defaults": {},
+    "partial": [],
+    "owner": "user_id",
+    "registry": [
+      "id",
+      "user_id",
+      "posting_window_id"
+    ]
+  },
+  "ip_bans": {
+    "fields": {
+      "ip": {
+        "type": "text",
+        "notnull": true
+      },
+      "banned_until": {
+        "type": "timestamptz",
+        "notnull": true
+      },
+      "created_at": {
+        "type": "timestamptz",
+        "notnull": true
+      }
+    },
+    "pk": [
+      "ip"
+    ],
+    "uniques": [],
+    "refs": {},
+    "defaults": {
+      "created_at": "clock_timestamp()"
+    },
+    "partial": [],
+    "owner": null,
+    "registry": [
+      "ip"
+    ]
+  }
+}

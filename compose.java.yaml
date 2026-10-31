@@ -1,0 +1,178 @@
+{
+  "services": {
+    "app-java-asia": {
+      "profiles": [
+        "java"
+      ],
+      "build": {
+        "context": ".",
+        "dockerfile": "webapp/java/Dockerfile"
+      },
+      "image": "isureal-local-java:dev",
+      "environment": {
+        "ISUREAL_REGION": "asia",
+        "ISUREAL_DB_HOSTS": "tserver-asia-1:5433,tserver-asia-2:5433",
+        "ISUREAL_DB_NAME": "isureal_java",
+        "ISUREAL_DB_USER": "isureal_java_app",
+        "ISUREAL_DB_SSLMODE": "disable",
+        "ISUREAL_DB_MAX_OPEN_CONNS": "4",
+        "ISUREAL_DB_TOPOLOGY_KEYS": "local.asia.asia:1"
+      },
+      "depends_on": {
+        "geo-init": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "mem_limit": "384m",
+      "restart": "unless-stopped"
+    },
+    "web-java-asia": {
+      "profiles": [
+        "java"
+      ],
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.web"
+      },
+      "image": "isureal-local/web:dev",
+      "environment": {
+        "APP_UPSTREAM": "app-java-asia:8080"
+      },
+      "ports": [
+        "127.0.0.1:28080:8080"
+      ],
+      "depends_on": {
+        "app-java-asia": {
+          "condition": "service_healthy"
+        }
+      },
+      "mem_limit": "64m",
+      "restart": "unless-stopped",
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "retries": 10
+      }
+    },
+    "app-java-europe": {
+      "profiles": [
+        "java"
+      ],
+      "build": {
+        "context": ".",
+        "dockerfile": "webapp/java/Dockerfile"
+      },
+      "image": "isureal-local-java:dev",
+      "environment": {
+        "ISUREAL_REGION": "europe",
+        "ISUREAL_DB_HOSTS": "tserver-europe-1:5433,tserver-europe-2:5433",
+        "ISUREAL_DB_NAME": "isureal_java",
+        "ISUREAL_DB_USER": "isureal_java_app",
+        "ISUREAL_DB_SSLMODE": "disable",
+        "ISUREAL_DB_MAX_OPEN_CONNS": "4",
+        "ISUREAL_DB_TOPOLOGY_KEYS": "local.europe.europe:1"
+      },
+      "depends_on": {
+        "geo-init": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "mem_limit": "384m",
+      "restart": "unless-stopped"
+    },
+    "web-java-europe": {
+      "profiles": [
+        "java"
+      ],
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.web"
+      },
+      "image": "isureal-local/web:dev",
+      "environment": {
+        "APP_UPSTREAM": "app-java-europe:8080"
+      },
+      "ports": [
+        "127.0.0.1:28081:8080"
+      ],
+      "depends_on": {
+        "app-java-europe": {
+          "condition": "service_healthy"
+        }
+      },
+      "mem_limit": "64m",
+      "restart": "unless-stopped",
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "retries": 10
+      }
+    },
+    "app-java-america": {
+      "profiles": [
+        "java"
+      ],
+      "build": {
+        "context": ".",
+        "dockerfile": "webapp/java/Dockerfile"
+      },
+      "image": "isureal-local-java:dev",
+      "environment": {
+        "ISUREAL_REGION": "america",
+        "ISUREAL_DB_HOSTS": "tserver-america-1:5433,tserver-america-2:5433",
+        "ISUREAL_DB_NAME": "isureal_java",
+        "ISUREAL_DB_USER": "isureal_java_app",
+        "ISUREAL_DB_SSLMODE": "disable",
+        "ISUREAL_DB_MAX_OPEN_CONNS": "4",
+        "ISUREAL_DB_TOPOLOGY_KEYS": "local.america.america:1"
+      },
+      "depends_on": {
+        "geo-init": {
+          "condition": "service_completed_successfully"
+        }
+      },
+      "mem_limit": "384m",
+      "restart": "unless-stopped"
+    },
+    "web-java-america": {
+      "profiles": [
+        "java"
+      ],
+      "build": {
+        "context": ".",
+        "dockerfile": "docker/local/Dockerfile.web"
+      },
+      "image": "isureal-local/web:dev",
+      "environment": {
+        "APP_UPSTREAM": "app-java-america:8080"
+      },
+      "ports": [
+        "127.0.0.1:28082:8080"
+      ],
+      "depends_on": {
+        "app-java-america": {
+          "condition": "service_healthy"
+        }
+      },
+      "mem_limit": "64m",
+      "restart": "unless-stopped",
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget -q -O /dev/null http://127.0.0.1:8080/healthz"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "retries": 10
+      }
+    }
+  }
+}

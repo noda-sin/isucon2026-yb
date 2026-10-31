@@ -1,89 +1,83 @@
-# ISUReal local YugabyteDB lab
+# ISUReal: Java + three-region YugabyteDB local lab
 
-初期Go実装を動かす段階1です。**全アプリデータの地域partition化とJava移植は未完了**です。3地域の接続と、独立した配置probeでlocal 2 + remote 1を検証します。アプリ本体は元のPK/FKを保持し、各地域1レプリカのglobal RF3です。
+初期Go実装を保存したまま、42 APIをJavaへ移植し、アプリの15 entityを地域partitionへ配置したローカル開発環境です。公式seedは未入手で、既定では合成smokeデータだけを使います。本番サーバへ接続する設定やdumpは含めません。
 
 ## 起動
 
-Docker Desktop (Compose v2以降) を起動してください。検証環境はApple Silicon、Docker VM 8 CPU / 約8 GiB、空き75 GiB。9 DBプロセスに加えて3アプリを動かすため、これは小規模smoke用途です。公式データ全量に十分なメモリ/ディスク容量とは限りません。
+Docker Desktopを起動し、リポジトリrootで実行してください。
 
 ```sh
-docker compose up -d --build
-docker compose ps
+docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml \
+  --profile java up -d --build
 ```
 
-| 地域 | UI / API | YSQL (host) |
-|---|---|---|
-| Asia | http://localhost:18080 | localhost:15433 |
-| Europe | http://localhost:18081 | localhost:15434 |
-| America | http://localhost:18082 | localhost:15435 |
+| 地域 | Java UI / API | 比較用Go UI / API | YSQL |
+|---|---|---|---|
+| Asia | http://localhost:28080 | http://localhost:18080 | localhost:15433 |
+| Europe | http://localhost:28081 | http://localhost:18081 | localhost:15434 |
+| America | http://localhost:28082 | http://localhost:18082 | localhost:15435 |
 
-Master UI: http://localhost:17000。すべての公開ポートは127.0.0.1に限定。DBはローカル開発用trust認証であり、外部公開しないでください。
+Master UI: http://localhost:17000。公開ポートはすべて127.0.0.1限定です。DBはローカルtrust認証なので外部公開しないでください。
 
-合成smokeアカウントは `smoke_asia`, `smoke_europe`, `smoke_america`、共通の合成secretは `local-smoke-secret`。公式データではありません。地域に対応するUIから利用します。初期アプリの `/api/initialize` は、この構成では意図せぬresetを防ぐため無効です。
+合成ユーザーは `smoke_asia` / `smoke_europe` / `smoke_america`、共通の合成secretは `local-smoke-secret`。対応地域のUIで利用します。Java DBは`isureal_java`、比較用Go DBは`isureal`。どちらも `/api/initialize` は503で、既存データを勝手にresetしません。
 
-## 正確なトポロジー
+検証環境はApple Silicon、Docker VM8CPU／約8GiBです。公式YB imageは `yugabytedb/yugabyte:2025.2.8.0-b60`、Java21／smart JDBC `42.7.3-yb-7`。小規模合成テスト向け設定であり、公式データ全量や本番負荷に足りる資源量を示すものではありません。
 
-「3インスタンス」は3つの論理地域として表します。プロセス監視と永続volumeを分離するため、各地域Master 1コンテナ + TServer 2コンテナ、計3 Master / 6 TServerです。アプリとnginxも地域ごとに1つずつです。3 TServerだけの構成ではlocal voting 2を満たせません。
+Go版だけの起動は `docker compose up -d --build`。既にJavaを起動している場合、このコマンドだけでJavaを停止することはありません。
 
-`local_asia`はAsia 2 + Europe 1、`local_europe`はEurope 2 + America 1、`local_america`はAmerica 2 + Asia 1。leader preferenceは対象地域が最優先です。`locality_probe`だけがregion LIST partitionでこれらのtablespaceに配置されます。`users`、`posts`等のアプリテーブルはglobal RF3のままです。詳しくは [SCHEMA.md](docker/local/SCHEMA.md)。
+## 正確な構成
 
-全コンテナは同じMac/VM/ストレージ上です。地域間遅延や実際の障害独立性は再現しません。local 2 + remote 1自体も対象地域全損で2/3を失うため、書込quorumを維持できません。
+3つの論理地域それぞれにMaster1＋TServer2、合計3 Master／6 TServerです。プロセス監視と永続volumeを分離したため、DBコンテナは9個です。3 TServerだけではlocal voting2を満たせません。Go／Javaとnginxも地域ごとに配置します。
 
-Goは標準pgxなのでsmart driverの `topology_keys` を渡さず、各アプリを同じ地域のTServerへ接続します。地域内2台目への自動failoverは未実装。Read Committedサーバflagとwait queuesを有効にし、接続時のdefault_transaction_isolationも明示します。
+Javaの実体45partitionと副次index57個は対象地域2 voting replicas＋次地域1、RF3、local leaderです。Asia→Europe、Europe→America、America→Asiaの順にremote replicaを置きます。グローバルID・username・関係pair・FKは別のglobal registry（各地域1 replica）で維持し、単純にregionをUNIQUEへ足して一意性を弱めていません。所有userのregion変更は11種類の関連データへ同一transactionで伝播します。
+
+Java smart driverは同地域の2 TServerへ接続します。Go比較版は初期schemaを保ったglobal RF3、固定の同地域TServer接続です。両者を同じ地域化実装とは扱いません。[詳細schema](docker/local/geo/README.md)と[互換差](webapp/java/README.md)を参照してください。
+
+すべて同じMac／VM／ストレージ上です。実際の障害独立性はなく、local2を置いた地域全損ではquorumを失います。global registryへの書込みを含むため、全transactionが地域内で完結するわけでもありません。
 
 ## 検証
 
-実行結果と未対応範囲は [VALIDATION.md](docker/local/VALIDATION.md)。
-
 ```sh
-docker compose --profile test run --rm --build verify
-docker compose exec -T tserver-asia-1 bash < docker/local/tests/verify-placement.sh
-python3 docker/local/smoke-app.py
+# 合成admin fixture（両DB、実データは使わない）
+for db in isureal isureal_java; do
+  docker compose exec -T tserver-asia-1 /home/yugabyte/bin/ysqlsh \
+    -h localhost -p 5433 -U yugabyte -d "$db" -v ON_ERROR_STOP=1 \
+    < docker/local/tests/contract-admin.sql
+done
+python3 docker/local/tests/contract-java.py --output /tmp/isureal-contract
+
+# 地域実体・副次indexの全tablet配置
+docker compose exec -T tserver-asia-1 bash < docker/local/geo/verify-placement.sh
 ```
 
-verifyはテスト専用データを作成/除去し、実RC snapshot、row/advisory lock、global username、FK、region更新、6TServerを検証します。API smokeは一意な名前の合成ユーザーを作成します。placementはprobe tabletの全replica/leaderを実測します。成功を全API互換や全データ地域化の証明にはしません。
+契約テストは合成ユーザー、投稿、関係を作り、管理APIで投稿期間を進めます。開発中の手作業データがある場合は専用の新規projectで実施してください。Go／Java各216ケース、42 API、署名・画像bytes・ZIP・SSE・地域移動まで比較しました。無効化したinitializeと認定取消しは意図したエラー経路です。
 
-## 停止・再起動・保持
+[Go検証記録](docker/local/VALIDATION.md)／[Java・geo検証記録](docker/local/VALIDATION-JAVA.md)／[契約試験の説明](docker/local/tests/contract-README.md)。完全な任意入力互換や公式競技ベンチマークの合格を意味しません。
 
-```sh
-docker compose stop
-docker compose start
-# コンテナを削除しても名前付きvolumeは保持
-docker compose down
-docker compose up -d
-```
+## 停止・再起動・データ保持
 
-`down -v`はデータを削除するため通常使いません。db-initは完了マーカーがあれば何も変更しません。途中失敗したDBを見つけた場合は自動dropせず停止します。原因を直した後、必要なら新しいCompose project名 (`-p isureal-clean`) と別ポートのoverrideを使って空の環境を作成します。
-
-## 公式データ後投入
-
-公式seed未入手。回収中止したpartial dumpは使用しません。
-
-1. 現在の環境を止め、必要なら下記data-only backupを保存。
-2. 新規の空のCompose project/volumeを用意（同時起動するならポートoverrideが必要）。
-3. 信頼する公式データをschemaを含まないSQLとして `data.sql` に準備。元データに `COPY`/INSERT以外の所有者、拡張、tablespace、DDL、resetが含まれないか確認。
-4. `SEED_DIR=/absolute/seed-dir docker compose -f compose.yaml -f compose.seed.yaml -p isureal-official up -d --build`
-
-通常起動はホストbind mount不要です。外部seedだけ `compose.seed.yaml` により指定ディレクトリを読み取り専用mountします（Docker Desktopのファイル共有許可が必要な場合があります）。新規initだけがseedを読込みます。既存環境でSEED_MODEを変えても追加入力/置換しません。公式スキーマとの差分や重複usernameがあれば失敗して止まります。公式seedの実互換性は入手後に検証してください。空のアプリデータは `SEED_MODE=empty`。
-
-## データbackupと復元
-
-稼働中のDBディレクトリを単純コピーしません。小規模ローカル用data-only SQL backup:
+Javaを含む全構成では同じComposeファイルを指定します。
 
 ```sh
-mkdir -p backups
-docker compose exec -T tserver-asia-1 /home/yugabyte/postgres/bin/ysql_dump \
-  -h localhost -p 5433 -U yugabyte -d isureal --data-only \
-  --exclude-table=locality_probe --exclude-table='locality_probe_*' \
-  --exclude-table=local_bootstrap_metadata --exclude-table='initial_*' > backups/data.sql
+docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml --profile java stop
+docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml --profile java start
+# コンテナを作り直しても名前付きvolumeは保持
+docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml --profile java down
+docker compose -f compose.yaml -f compose.geo.yaml -f compose.java.yaml --profile java up -d
 ```
 
-このファイルを新しい空projectの `SEED_MODE=external` 入力に渡します。アプリschema/tablespacesとprobeはinit側で作り、初期snapshotはデータ投入後に作り直します。DB本体の完全backup・継続的バックアップではありません。公式データ全量の復元試験は未実施。`backups/`とseed SQLはgitignore対象です。
+通常は `down -v` を使いません（データ削除）。初期化は完了マーカーを検出するとskipし、途中失敗したDBは自動上書きせず停止します。新規環境は別project名 (`-p isureal-clean`) と、同時起動するならポートoverrideを用意してください。
 
-## 出典と範囲
+## 後日の公式seedとbackup
 
-元の初期実装838544aから保存されたsnapshot bdaaccfを基点とし、最適化ブランチは取り込んでいません。Goの変更は接続設定・health・local initialize保護のみです。元のローカルrepoと本番サーバは変更していません。公開版にはサーバ設定、接続inventory、DBdump、実データを含めません。原本にLICENSEが確認できないため、独自のライセンス付与はしていません。
+Javaは親table名に正規化したdata-only **INSERT形式**を新規DBへ投入します。viewへのCOPYや、元の画像月別partition名へのINSERTは使えません。入口・制限は [geo seed手順](docker/local/geo/README.md)。Goのdata-only SQL入口は `SEED_DIR=/absolute/seed-dir docker compose -f compose.yaml -f compose.seed.yaml up -d --build`（新規DBのみ）です。
 
-Javaの差分と必要な互換試験は [JAVA-MIGRATION.md](docker/local/JAVA-MIGRATION.md)。
+Java geo専用exportツールは用意していますが、実行検証が未完了のため、**geo backup/restoreは未検証**です。公式seedの互換性も入手後に確認してください。取得を中止したpartial dumpは使用しません。[Go版の合成data-only backup／別DB復元](docker/local/BACKUP-GO.md)は51tableの件数・内容hash一致まで確認しています。
 
-公式参照: [Read Committed](https://docs.yugabyte.com/stable/architecture/transactions/read-committed/)、[tablespace](https://docs.yugabyte.com/stable/api/ysql/the-sql-language/statements/ddl_create_tablespace/)、[manual deployment](https://docs.yugabyte.com/stable/deploy/manual-deployment/start-masters/)、[2025.2 release](https://docs.yugabyte.com/stable/releases/ybdb-releases/v2025.2/)。固定image: `yugabytedb/yugabyte:2025.2.8.0-b60` (arm64/amd64)。
+## 遅延シミュレーション
+
+通常構成は遅延を注入しません。netem overrideの実装と必要権限は [netem手順](docker/local/netem/README.md)。既定RTT100ms（片道50ms）はシミュレーション仮定で、実測した本番値ではありません。NET_ADMIN付きsidecarとDocker内network再作成は明示承認後にのみ実行します。
+
+## 原本
+
+[PROVENANCE.md](PROVENANCE.md)。初期Go原本はcommit `b2d46a9`、Javaは別ディレクトリです。サーバ設定・inventory・DBdump・実データは公開履歴に含めません。原本にLICENSEが確認できず、新しいライセンスは付与していません。

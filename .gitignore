@@ -26,3 +26,4 @@ docker/local/seed/*
 !docker/local/seed/.gitkeep
 *.dump
 *.dump.partial
+webapp/java/target/

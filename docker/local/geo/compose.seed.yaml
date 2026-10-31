@@ -1,0 +1,10 @@
+# Optional override. The supplied file must contain trusted parent-table INSERTs.
+services:
+  geo-init:
+    environment:
+      JAVA_SEED_MODE: external
+    volumes:
+      - type: bind
+        source: ${GEO_SEED_FILE:?Set GEO_SEED_FILE to an absolute trusted SQL file}
+        target: /seed/data.sql
+        read_only: true

@@ -1,3 +1,5 @@
+> 更新: Java全42 APIとgeo profileを実装済みです。下記は当初の移植設計記録です。現在の実行結果は [VALIDATION-JAVA.md](VALIDATION-JAVA.md)、制限は [Java README](../../webapp/java/README.md) を参照してください。
+
 # Java 移植計画（未実装）
 
 現時点の起動対象は初期 Go 実装です。Java サーバー、Java Docker image、Java への切り替え設定は未実装です。この文書は全機能の移植範囲を固定する計画であり、Java でアプリが動作した証拠ではありません。
